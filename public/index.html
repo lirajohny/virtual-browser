@@ -8,8 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Header com informações do sistema -->
-    <header class="header">
+    <!-- Header com informações do sistema (inicialmente oculto) -->
+    <header class="header hidden" id="header">
         <div class="header-content">
             <div class="logo">
                 <i class="fas fa-globe"></i>
@@ -34,30 +34,41 @@
         </div>
     </header>
 
+    <!-- Botão para mostrar/ocultar sidebar -->
+    <button class="sidebar-toggle" id="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Container principal -->
     <main class="main-container">
-        <!-- Sidebar com controles -->
-        <aside class="sidebar">
+        <!-- Sidebar com controles (inicialmente colapsado) -->
+        <aside class="sidebar collapsed" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Controles</h3>
+                <button class="sidebar-close" id="sidebar-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <div class="user-info">
-                <h3>Sua Sessão</h3>
+                <h4>Sua Sessão</h4>
                 <div class="user-details">
                     <div class="detail-item">
-                        <label>ID do Usuário:</label>
+                        <label>ID:</label>
                         <span id="user-id">Carregando...</span>
                     </div>
                     <div class="detail-item">
-                        <label>Criado em:</label>
+                        <label>Criado:</label>
                         <span id="created-at">-</span>
                     </div>
                     <div class="detail-item">
-                        <label>Última Atividade:</label>
+                        <label>Atividade:</label>
                         <span id="last-activity">-</span>
                     </div>
                 </div>
             </div>
 
             <div class="controls">
-                <h3>Controles</h3>
                 <button id="new-tab-btn" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
                     Nova Aba
@@ -73,7 +84,7 @@
             </div>
 
             <div class="quick-links">
-                <h3>Links Rápidos</h3>
+                <h4>Links Rápidos</h4>
                 <div class="quick-link-buttons">
                     <button class="quick-link" data-url="https://www.google.com">
                         <i class="fab fa-google"></i>
@@ -94,11 +105,16 @@
                 </div>
             </div>
 
-            <div class="session-list">
-                <h3>Sessões Ativas</h3>
-                <div id="sessions-container">
-                    <!-- Sessões serão adicionadas dinamicamente -->
-                </div>
+            <!-- Botões para mostrar painéis -->
+            <div class="panel-toggles">
+                <button id="show-stats-btn" class="btn btn-info">
+                    <i class="fas fa-chart-bar"></i>
+                    Estatísticas
+                </button>
+                <button id="show-sessions-btn" class="btn btn-info">
+                    <i class="fas fa-list"></i>
+                    Sessões
+                </button>
             </div>
         </aside>
 
@@ -179,6 +195,65 @@
             </div>
         </section>
     </main>
+
+    <!-- Painel de Estatísticas (inicialmente oculto) -->
+    <div class="stats-panel hidden" id="stats-panel">
+        <div class="panel-header">
+            <h3><i class="fas fa-chart-bar"></i> Estatísticas do Sistema</h3>
+            <button class="panel-close" id="stats-panel-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="panel-active-users">0</span>
+                        <span class="stat-label">Usuários Online</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-server"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="panel-active-sessions">0</span>
+                        <span class="stat-label">Sessões Ativas</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-memory"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="panel-memory-usage">0 MB</span>
+                        <span class="stat-label">Uso de Memória</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="panel-uptime">0s</span>
+                        <span class="stat-label">Tempo Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel de Sessões (inicialmente oculto) -->
+    <div class="sessions-panel hidden" id="sessions-panel">
+        <div class="panel-header">
+            <h3><i class="fas fa-list"></i> Gerenciador de Sessões</h3>
+            <button class="panel-close" id="sessions-panel-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div class="session-list">
+                <div id="sessions-container">
+                    <!-- Sessões serão adicionadas dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Notificações -->
     <div class="notifications-container" id="notifications-container">

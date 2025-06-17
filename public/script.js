@@ -227,48 +227,48 @@ class VirtualBrowserClient {
         // Barra de endereços
         const urlInput = document.getElementById('url-input');
         const goBtn = document.getElementById('go-btn');
-        
+
         urlInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.navigateToUrl(urlInput.value);
             }
         });
-        
+
         goBtn.addEventListener('click', () => {
             this.navigateToUrl(urlInput.value);
         });
-        
+
         // Botões de navegação
         document.getElementById('back-btn').addEventListener('click', () => {
             this.goBack();
         });
-        
+
         document.getElementById('forward-btn').addEventListener('click', () => {
             this.goForward();
         });
-        
+
         document.getElementById('reload-btn').addEventListener('click', () => {
             this.reloadPage();
         });
-        
+
         // Controles da sidebar
         document.getElementById('new-tab-btn').addEventListener('click', () => {
             this.createNewTab();
         });
-        
+
         document.getElementById('refresh-btn').addEventListener('click', () => {
             this.refreshCurrentTab();
         });
-        
+
         document.getElementById('close-session-btn').addEventListener('click', () => {
             this.closeCurrentSession();
         });
-        
+
         // Botão de nova aba
         document.getElementById('new-tab-button').addEventListener('click', () => {
             this.createNewTab();
         });
-        
+
         // Quick links
         document.querySelectorAll('.quick-link').forEach(link => {
             link.addEventListener('click', () => {
@@ -276,7 +276,10 @@ class VirtualBrowserClient {
                 this.navigateToUrl(url);
             });
         });
-        
+
+        // Novos controles da interface
+        this.setupNewInterfaceListeners();
+
         // Modais
         this.setupModalListeners();
     }
@@ -749,6 +752,158 @@ class VirtualBrowserClient {
                 this.socket.emit('ping');
             }
         }, 30000); // A cada 30 segundos
+    }
+
+    /**
+     * Mostra o painel de estatísticas
+     */
+    showStatsPanel() {
+        const statsPanel = document.getElementById('stats-panel');
+        statsPanel.classList.remove('hidden');
+
+        // Atualizar estatísticas
+        this.updateStatsPanel();
+    }
+
+    /**
+     * Mostra o painel de sessões
+     */
+    showSessionsPanel() {
+        const sessionsPanel = document.getElementById('sessions-panel');
+        sessionsPanel.classList.remove('hidden');
+
+        // Solicitar atualização das sessões
+        if (this.socket) {
+            this.socket.emit('get-sessions');
+        }
+    }
+
+    /**
+     * Atualiza o painel de estatísticas
+     */
+    updateStatsPanel() {
+        // Fazer requisição para obter estatísticas atualizadas
+        fetch('/api/sessions/stats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const stats = data.data;
+
+                    document.getElementById('panel-active-users').textContent = stats.activeSessions || 0;
+                    document.getElementById('panel-active-sessions').textContent = stats.totalSessions || 0;
+
+                    // Converter bytes para MB
+                    const memoryMB = Math.round((stats.memory?.heapUsed || 0) / 1024 / 1024);
+                    document.getElementById('panel-memory-usage').textContent = `${memoryMB} MB`;
+
+                    // Converter uptime para formato legível
+                    const uptimeSeconds = Math.floor(stats.uptime || 0);
+                    const uptimeFormatted = this.formatUptime(uptimeSeconds);
+                    document.getElementById('panel-uptime').textContent = uptimeFormatted;
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao obter estatísticas:', error);
+            });
+    }
+
+    /**
+     * Formata tempo de uptime
+     */
+    formatUptime(seconds) {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (days > 0) {
+            return `${days}d ${hours}h ${minutes}m`;
+        } else if (hours > 0) {
+            return `${hours}h ${minutes}m ${secs}s`;
+        } else if (minutes > 0) {
+            return `${minutes}m ${secs}s`;
+        } else {
+            return `${secs}s`;
+        }
+    }
+
+    /**
+     * Atualiza estatísticas de sessão (sobrescrevendo método existente)
+     */
+    updateSessionStats(data) {
+        // Atualizar elementos do header (se visível)
+        const activeUsersEl = document.getElementById('active-users');
+        const activeSessionsEl = document.getElementById('active-sessions');
+
+        if (activeUsersEl) activeUsersEl.textContent = data.activeUsers || 0;
+        if (activeSessionsEl) activeSessionsEl.textContent = data.activeSessions || 0;
+
+        // Atualizar painel de estatísticas se estiver aberto
+        const statsPanel = document.getElementById('stats-panel');
+        if (!statsPanel.classList.contains('hidden')) {
+            this.updateStatsPanel();
+        }
+
+        // Atualizar lista de sessões
+        this.updateSessionsList(data.sessions || []);
+    }
+
+    /**
+     * Atualiza a lista de sessões no painel
+     */
+    updateSessionsList(sessions) {
+        const container = document.getElementById('sessions-container');
+
+        if (sessions.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Nenhuma sessão ativa</p>';
+            return;
+        }
+
+        container.innerHTML = sessions.map(session => `
+            <div class="session-item">
+                <div class="session-info">
+                    <div class="session-id">${session.userId.substring(0, 8)}...</div>
+                    <div class="session-details">
+                        Criado: ${new Date(session.createdAt).toLocaleString()}<br>
+                        URL: ${session.currentUrl || 'Nenhuma'}<br>
+                        Status: ${session.isActive ? 'Ativo' : 'Inativo'}
+                    </div>
+                </div>
+                <div class="session-actions">
+                    ${session.userId === this.currentUserId ?
+                        '<span class="btn btn-success" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">Sua Sessão</span>' :
+                        `<button class="btn btn-danger" onclick="virtualBrowserClient.closeSession('${session.userId}')" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">Fechar</button>`
+                    }
+                </div>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Fecha uma sessão específica
+     */
+    closeSession(userId) {
+        if (confirm('Tem certeza que deseja fechar esta sessão?')) {
+            fetch(`/api/sessions/${userId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showNotification('Sessão fechada com sucesso', 'success');
+                    // Atualizar lista
+                    if (this.socket) {
+                        this.socket.emit('get-sessions');
+                    }
+                } else {
+                    this.showError('Erro', data.error || 'Erro ao fechar sessão');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao fechar sessão:', error);
+                this.showError('Erro', 'Erro ao fechar sessão');
+            });
+        }
     }
 }
 
