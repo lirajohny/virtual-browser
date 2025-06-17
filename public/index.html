@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navegador Virtual Multi-Usuário</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header com informações do sistema -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-globe"></i>
+                <h1>Navegador Virtual Multi-Usuário</h1>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span id="active-users">0</span>
+                    <small>Usuários Online</small>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-server"></i>
+                    <span id="active-sessions">0</span>
+                    <small>Sessões Ativas</small>
+                </div>
+                <div class="connection-status" id="connection-status">
+                    <i class="fas fa-circle"></i>
+                    <span>Conectando...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <main class="main-container">
+        <!-- Sidebar com controles -->
+        <aside class="sidebar">
+            <div class="user-info">
+                <h3>Sua Sessão</h3>
+                <div class="user-details">
+                    <div class="detail-item">
+                        <label>ID do Usuário:</label>
+                        <span id="user-id">Carregando...</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Criado em:</label>
+                        <span id="created-at">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Última Atividade:</label>
+                        <span id="last-activity">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <h3>Controles</h3>
+                <button id="new-tab-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Nova Aba
+                </button>
+                <button id="refresh-btn" class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i>
+                    Atualizar
+                </button>
+                <button id="close-session-btn" class="btn btn-danger">
+                    <i class="fas fa-times"></i>
+                    Fechar Sessão
+                </button>
+            </div>
+
+            <div class="quick-links">
+                <h3>Links Rápidos</h3>
+                <div class="quick-link-buttons">
+                    <button class="quick-link" data-url="https://www.google.com">
+                        <i class="fab fa-google"></i>
+                        Google
+                    </button>
+                    <button class="quick-link" data-url="https://www.github.com">
+                        <i class="fab fa-github"></i>
+                        GitHub
+                    </button>
+                    <button class="quick-link" data-url="https://www.stackoverflow.com">
+                        <i class="fab fa-stack-overflow"></i>
+                        Stack Overflow
+                    </button>
+                    <button class="quick-link" data-url="https://www.youtube.com">
+                        <i class="fab fa-youtube"></i>
+                        YouTube
+                    </button>
+                </div>
+            </div>
+
+            <div class="session-list">
+                <h3>Sessões Ativas</h3>
+                <div id="sessions-container">
+                    <!-- Sessões serão adicionadas dinamicamente -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área principal do navegador -->
+        <section class="browser-area">
+            <!-- Abas -->
+            <div class="tabs-container">
+                <div class="tabs" id="tabs-container">
+                    <!-- Abas serão adicionadas dinamicamente -->
+                </div>
+                <button class="new-tab-button" id="new-tab-button">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Barra de navegação -->
+            <div class="navigation-bar">
+                <div class="nav-controls">
+                    <button id="back-btn" class="nav-btn" disabled>
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button id="forward-btn" class="nav-btn" disabled>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="reload-btn" class="nav-btn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                
+                <div class="address-bar">
+                    <div class="url-input-container">
+                        <i class="fas fa-lock" id="security-icon"></i>
+                        <input type="url" id="url-input" placeholder="Digite uma URL ou pesquise...">
+                        <button id="go-btn" class="go-button">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área de conteúdo -->
+            <div class="content-area">
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Carregando...</p>
+                    </div>
+                </div>
+
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-content">
+                        <i class="fas fa-globe-americas"></i>
+                        <h2>Bem-vindo ao Navegador Virtual Multi-Usuário</h2>
+                        <p>Digite uma URL na barra de endereços para começar a navegar.</p>
+                        <p>Cada usuário tem sua própria sessão isolada com cookies e estado independentes.</p>
+                        
+                        <div class="features">
+                            <div class="feature">
+                                <i class="fas fa-users"></i>
+                                <h3>Multi-Usuário</h3>
+                                <p>Múltiplos usuários podem acessar o mesmo site simultaneamente</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-shield-alt"></i>
+                                <h3>Sessões Isoladas</h3>
+                                <p>Cada usuário tem cookies e estado completamente separados</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-bolt"></i>
+                                <h3>Tempo Real</h3>
+                                <p>Comunicação em tempo real via WebSocket</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <iframe id="content-frame" class="content-frame" style="display: none;"></iframe>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notificações -->
+    <div class="notifications-container" id="notifications-container">
+        <!-- Notificações serão adicionadas dinamicamente -->
+    </div>
+
+    <!-- Modal de erro -->
+    <div class="modal" id="error-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> <span id="error-title">Erro</span></h3>
+                <button class="modal-close" id="error-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="error-message">Ocorreu um erro inesperado.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="error-modal-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> Confirmação</h3>
+                <button class="modal-close" id="confirm-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Tem certeza?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="confirm-modal-cancel">Cancelar</button>
+                <button class="btn btn-primary" id="confirm-modal-ok">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
