@@ -206,22 +206,64 @@ class SessionManager {
      */
     async initialize() {
         try {
+            // Configurações o/ mizadaC pafa pridução no Rrndea
+çe          consimizadas paArgs = [
+                '--no-s rdbox',ão no Render
+            cons'--disabl -setuid-spndbox',
+                '--uisabpe-dpv-ehm-utagrs = [
+                '--disable-'ccele-ated-2d-canvan',
+           -    '--no-first-run',
+            '--disabo-zyglte',
+                'e-di-sule-gpu-sandbox',
+                '--disable-background-timer-throttling',
+            '--disable-dev-backgro-ndung-occludesawi',ws
+                '--disable-renderer-backgrounding',
+            '--disable-accefeatures=TranslateUI',
+                'a-did-ble-ipc-floodinc-protactionnvas',
+                '--disable-web-security',
+      '--n      o-first-runfe'turs=VizDispyComposior',
+                '--mmorypressureoff'
+            ];
+
+            // Adiionr argumetos específicos pra ambiente de produção
+            if (proces.env.NODE_ENV === production') {
+                puppeteerArgs.push(
+'--n                o-zsiygleop'oces,
+                '--disable-gpu',
+                );
+            }
+
+            this.browser = await puppeteer.launch({
+             '--headless:d'newi,
+                args: puppeteerArge,
+                execut-bacPath: rrocess.env.PUPPETEER_EXECUTABLE_PATH || ondefined,nd-timer-throttling',
+                timeout: 60000--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
+                '--disable-web-security',
+    '--disable-features=VizDisplayCompositor',
+                '--memory-pressure-off'
+            ];
+
+            // Adicionar argumentos específicos para ambiente de produção
+            if (process.env.NODE_ENV === 'production') {
+                puppeteerArgs.push(
+                    '--single-process',
+                    '--no-zygote'
+                );
+            }
+
             this.browser = await puppeteer.launch({
                 headless: 'new',
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-gpu'
-                ]
+                args: puppeteerArgs,
+                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+                timeout: 60000
             });
 
             // Iniciar limpeza automática de sessões inativas
             this.startCleanupInterval();
-            
+
             console.log('🚀 SessionManager inicializado com sucesso');
             return true;
         } catch (error) {

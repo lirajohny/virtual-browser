@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: navegador-virtual
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PUPPETEER_HEADLESS
+        value: "true"
+      - key: PUPPETEER_ARGS
+        value: "--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage"
+      - key: MAX_SESSIONS
+        value: "5"
+      - key: SESSION_TIMEOUT_MINUTES
+        value: "30"
+      - key: CLEANUP_INTERVAL_MINUTES
+        value: "5"
+    healthCheckPath: /health

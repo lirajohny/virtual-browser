@@ -3,6 +3,9 @@ const http = require('http');
 const path = require('path');
 const cors = require('cors');
 
+// Carregar variáveis de ambiente
+require('dotenv').config();
+
 // Importar módulos personalizados
 const { SessionManager } = require('./sessions');
 const CustomProxy = require('./proxy');
@@ -16,12 +19,15 @@ class VirtualBrowserServer {
         this.app = express();
         this.server = http.createServer(this.app);
         this.port = process.env.PORT || 3000;
-        
+
+        // Configurações de produção
+        this.isProduction = process.env.NODE_ENV === 'production';
+
         // Gerenciadores principais
         this.sessionManager = null;
         this.proxy = null;
         this.wsManager = null;
-        
+
         this.setupMiddleware();
         this.setupRoutes();
     }

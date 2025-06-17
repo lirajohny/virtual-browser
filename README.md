@@ -371,6 +371,43 @@ Para verificar se tudo está funcionando:
 
 **✅ Sucesso**: Se conseguir manter múltiplos logins simultâneos no mesmo site, a solução está funcionando perfeitamente!
 
+## 🌐 Deploy em Produção
+
+### Deploy no Render (Recomendado)
+
+O projeto está otimizado para deploy no [Render](https://render.com) com configuração automática:
+
+#### Deploy Rápido
+```bash
+# Linux/macOS
+./deploy.sh
+
+# Windows
+deploy.bat
+```
+
+#### Deploy Manual
+1. **Suba o código para GitHub**
+2. **Acesse [render.com](https://render.com)**
+3. **New + → Web Service**
+4. **Conecte seu repositório GitHub**
+5. **Deploy automático** (render.yaml detectado)
+
+#### Configurações Importantes
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Health Check**: `/health`
+- **Environment**: `NODE_ENV=production`
+
+📖 **Guia Completo**: Veja [DEPLOY_RENDER.md](DEPLOY_RENDER.md) para instruções detalhadas.
+
+### Outras Plataformas
+
+- **Heroku**: Compatível (configure buildpacks)
+- **Railway**: Suporte nativo ao Node.js
+- **DigitalOcean App Platform**: Deploy via GitHub
+- **AWS/GCP/Azure**: Use o Dockerfile incluído
+
 ---
 
 **Desenvolvido com ❤️ para resolver o problema de limitação de sessões simultâneas em sites web.**
