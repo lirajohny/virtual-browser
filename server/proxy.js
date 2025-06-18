@@ -51,7 +51,7 @@ class CustomProxy {
                 requestConfig.headers['cookie'] = cookies;
             }
 
-            console.log(`🌐 Proxy ${method.toUpperCase()} ${targetUrl} para usuário ${userId}`);
+            console.log(`🌐 Proxy: ${method.toUpperCase()} ${targetUrl} (User: ${userId.substring(0, 8)}...)`);
 
             // Fazer a requisição
             const response = await axios(requestConfig);
@@ -61,20 +61,26 @@ class CustomProxy {
                 await session.saveCookiesFromResponse(targetUrl, response.headers['set-cookie']);
             }
 
-            // Processar resposta baseada no tipo de conteúdo
+            // Processar resposta baseado no tipo de conteúdo
             const contentType = response.headers['content-type'] || '';
             
             if (contentType.includes('text/html')) {
-                // Reescrever HTML
+                // Processar HTML
                 const rewrittenHtml = this.rewriteHtml(response.data, targetUrl, userId);
-                res.set(this.prepareResponseHeaders(response.headers));
+                
+                // Configurar headers da resposta
+                res.set({
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                });
+                
                 res.send(rewrittenHtml);
-            } else if (contentType.includes('application/json')) {
-                // Passar JSON diretamente
-                res.set(this.prepareResponseHeaders(response.headers));
-                res.json(response.data);
-            } else {
-                // Outros tipos de conteúdo (CSS, JS, imagens, etc.)
+            } else if (contentType.includes('text/css') || 
+                       contentType.includes('javascript') || 
+                       contentType.includes('text/javascript')) {
+                // Processar conteúdo estático
                 const processedContent = this.processStaticContent(
                     response.data, 
                     contentType, 
@@ -82,31 +88,47 @@ class CustomProxy {
                     userId
                 );
                 
-                res.set(this.prepareResponseHeaders(response.headers));
+                res.set('Content-Type', contentType);
                 res.send(processedContent);
+            } else {
+                // Outros tipos de conteúdo (imagens, etc.)
+                res.set('Content-Type', contentType);
+                res.send(response.data);
             }
 
         } catch (error) {
-            console.error(`❌ Erro no proxy para ${targetUrl}:`, error.message);
+            console.error('❌ Erro no proxy:', error.message);
             
-            res.status(500).json({
-                error: 'Erro no proxy',
-                message: error.message,
-                targetUrl,
-                userId
-            });
+            if (error.code === 'ENOTFOUND') {
+                res.status(404).json({
+                    error: 'Site não encontrado',
+                    url: targetUrl
+                });
+            } else if (error.code === 'ECONNREFUSED') {
+                res.status(503).json({
+                    error: 'Conexão recusada pelo servidor',
+                    url: targetUrl
+                });
+            } else {
+                res.status(500).json({
+                    error: 'Erro interno do proxy',
+                    message: error.message,
+                    url: targetUrl
+                });
+            }
         }
     }
 
     /**
-     * Prepara headers para a requisição
+     * Prepara os headers para a requisição
      */
     prepareHeaders(originalHeaders, targetUrl, session) {
         const parsedUrl = url.parse(targetUrl);
         
+        // Headers básicos
         const headers = {
-            'User-Agent': session.userAgent,
-            'Accept': originalHeaders.accept || 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'User-Agent': originalHeaders['user-agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': originalHeaders['accept'] || 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': originalHeaders['accept-language'] || 'pt-BR,pt;q=0.9,en;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'DNT': '1',
@@ -119,55 +141,25 @@ class CustomProxy {
         };
 
         // Adicionar referer se disponível
-        if (session.activeUrl && session.activeUrl !== targetUrl) {
-            headers['Referer'] = session.activeUrl;
+        if (originalHeaders['referer']) {
+            headers['Referer'] = originalHeaders['referer'];
         }
 
         // Adicionar host correto
-        if (parsedUrl.host) {
-            headers['Host'] = parsedUrl.host;
-        }
+        headers['Host'] = parsedUrl.host;
 
-        // Copiar headers específicos da requisição original
-        const allowedHeaders = [
-            'authorization',
-            'content-type',
-            'content-length',
-            'x-requested-with'
-        ];
+        // Remover headers problemáticos
+        delete headers['host'];
+        delete headers['connection'];
+        delete headers['content-length'];
+        delete headers['transfer-encoding'];
+        delete headers['content-encoding'];
+        delete headers['x-forwarded-for'];
+        delete headers['x-forwarded-proto'];
+        delete headers['x-forwarded-host'];
+        delete headers['x-real-ip'];
 
-        allowedHeaders.forEach(headerName => {
-            if (originalHeaders[headerName]) {
-                headers[headerName] = originalHeaders[headerName];
-            }
-        });
-
-        return headers;
-    }
-
-    /**
-     * Prepara headers para a resposta
-     */
-    prepareResponseHeaders(originalHeaders) {
-        const headers = {};
-        
-        // Headers permitidos para passar adiante
-        const allowedHeaders = [
-            'content-type',
-            'content-length',
-            'cache-control',
-            'expires',
-            'last-modified',
-            'etag'
-        ];
-
-        allowedHeaders.forEach(headerName => {
-            if (originalHeaders[headerName]) {
-                headers[headerName] = originalHeaders[headerName];
-            }
-        });
-
-        // Remover headers que podem causar problemas
+        // Remover headers de segurança que podem causar problemas
         delete headers['content-security-policy'];
         delete headers['x-frame-options'];
         delete headers['strict-transport-security'];
@@ -176,7 +168,7 @@ class CustomProxy {
     }
 
     /**
-     * Reescreve HTML para funcionar através do proxy
+     * Reescreve o HTML para interceptar links e recursos
      */
     rewriteHtml(html, baseUrl, userId) {
         try {
@@ -251,6 +243,69 @@ class CustomProxy {
                 })();
                 </script>
             `;
+
+            // Adicionar CSS para garantir que elementos fixos sejam exibidos
+            const fixedElementsCSS = `
+                <style>
+                /* Garantir que elementos fixos sejam exibidos corretamente no iframe */
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    height: auto !important;
+                    min-height: 100vh !important;
+                    overflow-x: auto !important;
+                    overflow-y: auto !important;
+                }
+
+                /* Forçar elementos fixos a permanecerem visíveis */
+                *[style*="position: fixed"],
+                *[style*="position:fixed"],
+                .fixed, .navbar-fixed, .header-fixed, .top-bar, .navigation-bar,
+                .navbar, .header, .nav-bar, .navigation, .top-nav,
+                .fixed-top, .sticky-top, .navbar-fixed-top, .navbar-fixed-bottom {
+                    position: static !important;
+                    top: auto !important;
+                    left: auto !important;
+                    right: auto !important;
+                    bottom: auto !important;
+                    width: 100% !important;
+                    z-index: 1000 !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    transform: none !important;
+                }
+
+                /* Garantir que barras de navegação sejam sempre visíveis */
+                nav, .nav, .navbar, .header, .top-bar, .navigation {
+                    position: static !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    height: auto !important;
+                    overflow: visible !important;
+                }
+
+                /* Prevenir que elementos sejam escondidos por JavaScript */
+                .hidden, .hide, .d-none {
+                    display: block !important;
+                }
+
+                /* Garantir que o body tenha altura suficiente */
+                body {
+                    min-height: 100vh !important;
+                    position: relative !important;
+                }
+                </style>
+            `;
+
+            // Adicionar o CSS no head
+            if ($('head').length > 0) {
+                $('head').append(fixedElementsCSS);
+            } else {
+                $('html').prepend(fixedElementsCSS);
+            }
 
             // Adicionar o script antes do fechamento do body
             if ($('body').length > 0) {
@@ -354,13 +409,16 @@ class CustomProxy {
     }
 
     /**
-     * Valida se uma URL é segura para acessar
+     * Verifica se uma URL é segura para acesso
      */
     isUrlSafe(url) {
         try {
             const parsedUrl = new URL(url);
             
-            // Bloquear URLs locais/privadas
+            // Em desenvolvimento, permitir localhost se a variável de ambiente estiver definida
+            const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_LOCALHOST === 'true';
+            
+            // Bloquear URLs locais/privadas (exceto em desenvolvimento)
             const hostname = parsedUrl.hostname.toLowerCase();
             const blockedHosts = [
                 'localhost',
@@ -369,14 +427,14 @@ class CustomProxy {
                 '::1'
             ];
             
-            if (blockedHosts.includes(hostname)) {
+            if (!isDevelopment && blockedHosts.includes(hostname)) {
                 return false;
             }
             
-            // Bloquear redes privadas
-            if (hostname.match(/^10\./) || 
+            // Bloquear redes privadas (exceto em desenvolvimento)
+            if (!isDevelopment && (hostname.match(/^10\./) || 
                 hostname.match(/^192\.168\./) || 
-                hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+                hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./))) {
                 return false;
             }
             

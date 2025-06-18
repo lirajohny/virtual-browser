@@ -8,31 +8,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Header com informações do sistema (inicialmente oculto) -->
-    <header class="header hidden" id="header">
-        <div class="header-content">
-            <div class="logo">
-                <i class="fas fa-globe"></i>
-                <h1>Navegador Virtual Multi-Usuário</h1>
-            </div>
-            <div class="stats">
-                <div class="stat-item">
-                    <i class="fas fa-users"></i>
-                    <span id="active-users">0</span>
-                    <small>Usuários Online</small>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-server"></i>
-                    <span id="active-sessions">0</span>
-                    <small>Sessões Ativas</small>
-                </div>
-                <div class="connection-status" id="connection-status">
-                    <i class="fas fa-circle"></i>
-                    <span>Conectando...</span>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Header removido - informações movidas para sidebar -->
+
+    <!-- Botão para mostrar/ocultar sidebar -->
+    <button class="sidebar-toggle" id="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <!-- Botão para mostrar/ocultar sidebar -->
     <button class="sidebar-toggle" id="sidebar-toggle">
@@ -81,6 +62,49 @@
                     <i class="fas fa-times"></i>
                     Fechar Sessão
                 </button>
+            </div>
+
+            <div class="user-info">
+                <h4>Sua Sessão</h4>
+                <div class="user-details">
+                    <div class="detail-item">
+                        <label>ID:</label>
+                        <span id="user-id">Carregando...</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Criado:</label>
+                        <span id="created-at">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Atividade:</label>
+                        <span id="last-activity">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações do Sistema -->
+            <div class="system-info">
+                <h4>Sistema</h4>
+                <div class="system-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <div class="stat-info">
+                            <span id="active-users">0</span>
+                            <small>Usuários Online</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-server"></i>
+                        <div class="stat-info">
+                            <span id="active-sessions">0</span>
+                            <small>Sessões Ativas</small>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="connection-status">
+                        <i class="fas fa-circle"></i>
+                        <span>Conectando...</span>
+                    </div>
+                </div>
             </div>
 
             <div class="quick-links">

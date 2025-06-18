@@ -138,18 +138,18 @@ class VirtualBrowserClient {
      */
     handleUserRegistered(data) {
         console.log('👤 Usuário registrado:', data);
-        
+
         this.currentUserId = data.userId;
         localStorage.setItem('virtualBrowser_userId', data.userId);
-        
-        // Atualizar interface
+
+        // Atualizar interface (sem mostrar header)
         this.updateUserInfo(data);
-        
+
         // Criar primeira aba se não existir
         if (this.tabs.size === 0) {
             this.createTab(data.userId, 'Nova Aba', '');
         }
-        
+
         this.showNotification(
             data.reconnected ? 'Reconectado com sucesso!' : 'Bem-vindo! Sessão criada.',
             'success'
@@ -292,24 +292,24 @@ class VirtualBrowserClient {
         const errorModal = document.getElementById('error-modal');
         const errorClose = document.getElementById('error-modal-close');
         const errorOk = document.getElementById('error-modal-ok');
-        
+
         [errorClose, errorOk].forEach(btn => {
             btn.addEventListener('click', () => {
                 errorModal.classList.add('hidden');
             });
         });
-        
+
         // Modal de confirmação
         const confirmModal = document.getElementById('confirm-modal');
         const confirmClose = document.getElementById('confirm-modal-close');
         const confirmCancel = document.getElementById('confirm-modal-cancel');
-        
+
         [confirmClose, confirmCancel].forEach(btn => {
             btn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
             });
         });
-        
+
         // Fechar modal clicando fora
         [errorModal, confirmModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -318,6 +318,80 @@ class VirtualBrowserClient {
                 }
             });
         });
+    }
+
+    /**
+     * Configura listeners da nova interface
+     */
+    setupNewInterfaceListeners() {
+        // Botão toggle da sidebar
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarClose = document.getElementById('sidebar-close');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', () => {
+                sidebar.classList.add('collapsed');
+            });
+        }
+
+        // Botões dos painéis
+        const showStatsBtn = document.getElementById('show-stats-btn');
+        const showSessionsBtn = document.getElementById('show-sessions-btn');
+
+        if (showStatsBtn) {
+            showStatsBtn.addEventListener('click', () => {
+                this.showStatsPanel();
+            });
+        }
+
+        if (showSessionsBtn) {
+            showSessionsBtn.addEventListener('click', () => {
+                this.showSessionsPanel();
+            });
+        }
+
+        // Botões de fechar painéis
+        const statsPanelClose = document.getElementById('stats-panel-close');
+        const sessionsPanelClose = document.getElementById('sessions-panel-close');
+
+        if (statsPanelClose) {
+            statsPanelClose.addEventListener('click', () => {
+                document.getElementById('stats-panel').classList.add('hidden');
+            });
+        }
+
+        if (sessionsPanelClose) {
+            sessionsPanelClose.addEventListener('click', () => {
+                document.getElementById('sessions-panel').classList.add('hidden');
+            });
+        }
+
+        // Fechar painéis clicando fora
+        const statsPanel = document.getElementById('stats-panel');
+        const sessionsPanel = document.getElementById('sessions-panel');
+
+        if (statsPanel) {
+            statsPanel.addEventListener('click', (e) => {
+                if (e.target === statsPanel) {
+                    statsPanel.classList.add('hidden');
+                }
+            });
+        }
+
+        if (sessionsPanel) {
+            sessionsPanel.addEventListener('click', (e) => {
+                if (e.target === sessionsPanel) {
+                    sessionsPanel.classList.add('hidden');
+                }
+            });
+        }
     }
 
     /**
